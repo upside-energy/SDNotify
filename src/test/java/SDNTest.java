@@ -1,6 +1,6 @@
 import com.sun.jna.Platform;
 import info.faljse.SDNotify.SDNotify;
-import info.faljse.SDNotify.jna.CLibrary;
+import info.faljse.SDNotify.jnr.CLibrary;
 import org.junit.Assume;
 import org.junit.Test;
 

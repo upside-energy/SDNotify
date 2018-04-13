@@ -1,9 +1,13 @@
 package info.faljse.SDNotify;
 
-import info.faljse.SDNotify.io.NativeDomainSocket;
-import info.faljse.SDNotify.jna.CLibrary;
+import jnr.unixsocket.UnixDatagramSocket;
+import jnr.unixsocket.UnixSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.SocketAddress;
 
 
 /**
@@ -30,7 +34,7 @@ public class SDNotify {
     private final static String NOTIFY_SOCKET = "NOTIFY_SOCKET";
     private final static String WATCHDOG_USEC = "WATCHDOG_USEC";
     private final static String WATCHDOG_PID = "WATCHDOG_PID";
-    private NativeDomainSocket sd;
+    private UnixDatagramSocket sd;
     private static volatile SDNotify instance;
     private volatile boolean available = false;
 
@@ -41,12 +45,12 @@ public class SDNotify {
             return;
         }
         try {
-            CLibrary.SockAddr sockAddr = new CLibrary.SockAddr(socketName);
+            SocketAddress sockAddr = new UnixSocketAddress(socketName);
             if (sockAddr == null) {
                 log.warn("Could not create SockAddr, socketName=\"{}\"", socketName);
                 return;
             }
-            sd = new NativeDomainSocket();
+            sd = new UnixDatagramSocket();
             if (sd == null) {
                 log.warn("socket() failed.");
                 return;
@@ -159,7 +163,7 @@ public class SDNotify {
      */
     public static boolean isWatchdogEnabled() {
         String watchdog_pid = System.getenv(WATCHDOG_PID);
-        return isAvailable() && getWatchdogFrequency() > 0 && (isEmpty(watchdog_pid) || determinePid().equals(watchdog_pid));
+        return isAvailable() && getWatchdogFrequency() > 0 && (isEmpty(watchdog_pid) || getPid().equals(watchdog_pid));
     }
 
     /**
@@ -186,11 +190,16 @@ public class SDNotify {
     private void sendString(String s) {
         if (sd == null || available == false || s == null)
             return;
-        sd.send(s.getBytes(), s.length());
+        DatagramPacket dgp=new DatagramPacket(s.getBytes(), s.length());
+        try {
+            sd.send(dgp);
+        } catch (IOException e) {
+            log.warn("send failed", e);
+        }
     }
 
-    private static String determinePid() {
-        return String.valueOf(CLibrary.clib.getpid());
+    private static String getPid() {
+        return String.valueOf(ProcessHandle.current().pid());
     }
 
     private static boolean isEmpty(String s) {
