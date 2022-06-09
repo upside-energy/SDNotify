@@ -44,7 +44,7 @@ public class SDNotify {
         }
         try {
             CLibrary.SockAddr sockAddr = new CLibrary.SockAddr(socketName);
-            sd = new NativeDomainSocket();
+            sd = new NativeDomainSocket(new CLibrary());
             sd.connect(sockAddr);
         } catch (Exception e) {
             log.warn("Notify init failed", e);
@@ -66,7 +66,7 @@ public class SDNotify {
      * Since there is little value in signaling non-readiness,
      * the only value services should send is "READY=1" (i.e. "READY=0" is not defined).
      */
-    public static void sendNotify() {
+    public static void sendNotify() throws SDNotifyException {
         SDNotify.getInstance().sendString("READY=1");
     }
 
@@ -77,7 +77,7 @@ public class SDNotify {
      * Note that a service that sends this notification must also send a "READY=1"
      * notification when it completed reloading its configuration.
      */
-    public static void sendReloading() {
+    public static void sendReloading() throws SDNotifyException {
         SDNotify.getInstance().sendString("RELOADING=1");
     }
 
@@ -86,7 +86,7 @@ public class SDNotify {
      * This is useful to allow the service manager to track the service's internal state,
      * and present it to the user.
      */
-    public static void sendStopping() {
+    public static void sendStopping() throws SDNotifyException {
         SDNotify.getInstance().sendString("STOPPING=1");
     }
 
@@ -98,7 +98,7 @@ public class SDNotify {
      *
      * @param status single-line status string
      */
-    public static void sendStatus(String status) {
+    public static void sendStatus(String status) throws SDNotifyException {
         SDNotify.getInstance().sendString(String.format("STATUS=%s", status));
     }
 
@@ -107,7 +107,7 @@ public class SDNotify {
      *
      * @param errno the errno-style error code, formatted as string.
      */
-    public static void sendErrno(int errno) {
+    public static void sendErrno(int errno) throws SDNotifyException {
         SDNotify.getInstance().sendString(String.format("ERRNO=%d", errno));
     }
 
@@ -117,7 +117,7 @@ public class SDNotify {
      *
      * @param error the D-Bus error-style error code.
      */
-    public static void sendBusError(String error) {
+    public static void sendBusError(String error) throws SDNotifyException {
         SDNotify.getInstance().sendString(String.format("BUSERROR=%s", error));
     }
 
@@ -127,7 +127,7 @@ public class SDNotify {
      *
      * @param pid The main process ID (PID) of the service
      */
-    public static void sendMainPID(int pid) {
+    public static void sendMainPID(int pid) throws SDNotifyException {
         SDNotify.getInstance().sendString(String.format("MAINPID=%d", pid));
     }
 
@@ -138,7 +138,7 @@ public class SDNotify {
      * See systemd.service(5) for information how to enable this functionality and
      * sd_watchdog_enabled(3) for the details of how the service can check whether the watchdog is enabled.
      */
-    public static void sendWatchdog() {
+    public static void sendWatchdog() throws SDNotifyException {
         SDNotify.getInstance().sendString("WATCHDOG=1");
     }
 
@@ -148,7 +148,7 @@ public class SDNotify {
      *
      * @param message The message to be sent through sd_notify
      */
-    public static void sendRaw(String message) {
+    public static void sendRaw(String message) throws SDNotifyException {
         SDNotify.getInstance().sendString(message);
     }
 
@@ -187,7 +187,7 @@ public class SDNotify {
         return instance;
     }
 
-    private void sendString(String s) {
+    private void sendString(String s) throws SDNotifyException {
         if (sd == null || available == false || s == null)
             return;
         sd.send(s.getBytes(StandardCharsets.UTF_8), s.length());
