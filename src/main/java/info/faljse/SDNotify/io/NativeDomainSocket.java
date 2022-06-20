@@ -60,7 +60,6 @@ public class NativeDomainSocket {
   }
 
   public int send(byte[] buf, int len) throws SDNotifyException {
-    logger.info("Sending byte array of length: " + buf.length + " and len argument: " + len); //temporary for debugging
     int response = clib.send(socket, ByteBuffer.wrap(buf, 0, len), len, 0);
     if (response == -1) {
       throw new SDNotifyException("Error while sending message to socket");
