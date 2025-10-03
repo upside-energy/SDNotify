@@ -1,3 +1,25 @@
+# Upside-Energy
+
+The following maven plugin allows building the jar with the dependencies included:
+
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>maven-assembly</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
 # SDNotify 
 
 SDNotify implements the [systemd](https://www.freedesktop.org/wiki/Software/systemd/) 
